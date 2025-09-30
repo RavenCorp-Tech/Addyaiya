@@ -86,6 +86,9 @@ svg {
   z-index: 1000;
   transform: translateY(0);
   transition: transform var(--transition-base), background var(--transition-base), border-color var(--transition-base);
+  will-change: transform;
+  /* Respect safe area on iOS */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 html[data-theme="light"] .site-header {
@@ -120,15 +123,6 @@ html[data-theme="light"] .site-header {
   font-weight: 600;
   color: var(--text-primary);
   letter-spacing: 0.01em;
-}
-
-.site-subtitle {
-  color: var(--text-muted);
-  font-size: 0.85rem;
-}
-
-.site-nav {
-  margin-left: auto;
 }
 
 .nav-toggle {
@@ -884,6 +878,60 @@ html[data-theme="dark"] .page-hero .hero-highlight {
   background: rgba(37, 99, 235, 0.14);
 }
 
+/* In-page form alerts */
+.form-alert {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+.form-alert.success {
+  border-color: rgba(34, 197, 94, 0.45);
+  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.15);
+}
+.form-alert.error {
+  border-color: rgba(239, 68, 68, 0.45);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.15);
+}
+
+/* --- Scroll reveal utilities (desktop + mobile) --- */
+/* Only activate when JS adds the flag to avoid FOUC */
+.reveal-enabled .reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 280ms ease-out,
+    transform 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-enabled .reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Ensure hover/focus lift still applies to cards when revealed */
+.reveal-enabled .topic-card.reveal-on-scroll.is-visible:hover,
+.reveal-enabled .topic-card.reveal-on-scroll.is-visible:focus-within {
+  transform: translateY(-4px);
+}
+
+.reveal-enabled .post-card.reveal-on-scroll.is-visible:hover,
+.reveal-enabled .post-card.reveal-on-scroll.is-visible:focus-within {
+  transform: translateY(-6px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-enabled .reveal-on-scroll {
+    transition-duration: 1ms;
+    transform: none;
+    opacity: 1;
+  }
+}
+
 .site-footer {
   border-top: 1px solid var(--border-color);
   padding: 2rem clamp(1rem, 3vw, 2rem);
@@ -902,6 +950,43 @@ html[data-theme="light"] .site-footer {
 }
 
 @media (max-width: 960px) {
+  /* Mobile: use container transform so the header fully slides out */
+  .site-header { will-change: transform; }
+  .site-header.is-hidden { transform: translateY(-100%); }
+  /* Force fixed positioning for reliable slide on all mobile browsers */
+  html.mobile-fixed-header .site-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+  html.mobile-fixed-header main {
+    padding-top: var(--header-height, 64px);
+  }
+  /* Avoid horizontal scroll due to wide elements on mobile/tablet */
+  html, body {
+    overflow-x: hidden;
+  }
+  /* Standardize footer size across all pages on mobile/tablet widths */
+  .site-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Increase side padding to keep text off edges on small screens */
+    padding: 2rem clamp(1.25rem, 5vw, 1.75rem);
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+  }
+  .site-footer p {
+    /* Allow wrapping to prevent overflow beyond edges */
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    font-size: 0.9rem; /* match home page */
+    line-height: 1.3;
+    max-width: 100%;
+    text-align: center;
+  }
   .header-inner {
     flex-wrap: nowrap;
     align-items: center;
@@ -941,11 +1026,50 @@ html[data-theme="light"] .site-footer {
     z-index: 1101;
   }
 
+  /* Animated hamburger to X */
+  .nav-toggle .nav-toggle-bar {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 22px;
+    height: 2px;
+    margin: 0;
+    background: var(--text-primary);
+    border-radius: 2px;
+    transform-origin: center;
+    transition: transform 260ms cubic-bezier(0.2, 0.6, 0.3, 1),
+                opacity 200ms ease,
+                background var(--transition-base);
+  }
+
+  /* Top, middle, bottom bars initial positions (sr-only is first child) */
+  .nav-toggle .nav-toggle-bar:nth-child(2) {
+    transform: translate(-50%, calc(-50% - 7px));
+  }
+  .nav-toggle .nav-toggle-bar:nth-child(3) {
+    transform: translate(-50%, -50%);
+  }
+  .nav-toggle .nav-toggle-bar:nth-child(4) {
+    transform: translate(-50%, calc(-50% + 7px));
+  }
+
+  /* Expanded state -> morph into X */
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) {
+    transform: translate(-50%, -50%) rotate(45deg);
+  }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) {
+    opacity: 0;
+    transform: translate(-50%, -50%) scaleX(0.5);
+  }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(4) {
+    transform: translate(-50%, -50%) rotate(-45deg);
+  }
+
   .nav-links {
     position: fixed;
     inset: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     padding: clamp(4.5rem, 14vw, 6.5rem) clamp(1.6rem, 8vw, 2.75rem) clamp(2.25rem, 8vw, 3rem);
     display: flex;
     flex-direction: column;
@@ -965,7 +1089,7 @@ html[data-theme="light"] .site-footer {
     max-height: none;
     transition: transform 360ms cubic-bezier(0.24, 0.6, 0.32, 1), opacity 320ms ease, visibility 0s linear 360ms;
     transition-delay: 0s, 0s, 360ms;
-    z-index: 1000;
+    z-index: 1100; /* above fixed header */
   }
 
   html[data-theme="light"] .nav-links {
