@@ -15,6 +15,7 @@ const cheerio = require('cheerio');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUTPUT = path.join(ROOT, 'knowledge-base.json');
+const STATIC_OUTPUT = path.join(ROOT, 'assets', 'data', 'knowledge-base.json');
 
 // Directories / files to skip while crawling
 const SKIP = new Set(['node_modules', '.git', 'assets', 'scripts']);
@@ -115,8 +116,14 @@ function build() {
     }
   }
 
-  fs.writeFileSync(OUTPUT, JSON.stringify(entries, null, 2), 'utf-8');
+  const json = JSON.stringify(entries, null, 2);
+  fs.writeFileSync(OUTPUT, json, 'utf-8');
+  // Also write to the static assets folder for GitHub Pages
+  const staticDir = path.dirname(STATIC_OUTPUT);
+  if (!fs.existsSync(staticDir)) fs.mkdirSync(staticDir, { recursive: true });
+  fs.writeFileSync(STATIC_OUTPUT, json, 'utf-8');
   console.log(`[KB] Wrote ${entries.length} entries → ${OUTPUT}`);
+  console.log(`[KB] Wrote ${entries.length} entries → ${STATIC_OUTPUT}`);
   return entries;
 }
 

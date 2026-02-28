@@ -4,8 +4,9 @@
 # Dependencies
 node_modules/
 
-# Knowledge base (auto-generated)
+# Knowledge base (root copy is auto-generated, assets/data/ copy is committed)
 knowledge-base.json
+!assets/data/knowledge-base.json
 
 # OS files
 .DS_Store
