@@ -1,0 +1,19 @@
+{
+  "name": "addyaiya-assistant",
+  "version": "1.0.0",
+  "description": "AI Assistant for the Official Website of Shaykh Dr. Khālid al-Ḥāyik",
+  "main": "server.js",
+  "scripts": {
+    "build-kb": "node scripts/build-knowledge-base.js",
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "chokidar": "^3.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "openai": "^4.73.0"
+  }
+}
